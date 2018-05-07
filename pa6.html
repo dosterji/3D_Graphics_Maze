@@ -1,0 +1,170 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+<h1>Programming Assignment 6 - Textures</h1>
+
+<!-- The graphics canvas -->
+<canvas id="gl-canvas" width="960" height="540" style="border: 1px solid black;">
+    Oops ... your browser doesn't support the HTML5 canvas element
+</canvas>
+
+<p>
+    Camera mode: 
+    <select id="camera-mode-select">
+        <option value="0">Fly</option>
+        <option value="1">Mouse</option>
+    </select>
+    Lighting mode:
+    <select id="lighting-mode-select">
+        <option value="0">Local</option>
+        <option value="1">Camera</option>
+    </select>
+    &nbsp;&nbsp;&nbsp;&nbsp;Space bar - Reset camera position
+</p>
+<table>
+    <tr>
+        <td style="vertical-align:top">
+            <b>Fly mode</b>
+            <ul>
+                <li>W/S Keys - Dolly forward/backward</li>
+                <li>A/D Keys - Track left/right</li>
+                <li>Q/E Keys - Track up/down</li>
+                <li>Mouse drag - turn right/left, up/down</li>
+            </ul>
+        </td>
+        <td style="vertical-align:top">
+            <b>Mouse mode</b>
+            <ul>
+                <li>Orbit - Drag with left button</li>
+                <li>Track - Drag with right button</li>
+                <li>Dolly - Mouse wheel</li>
+            </ul>
+        </td>
+    </tr>
+</table>
+
+<!-- The shader program -->
+<script id="vertex-shader" type="x-shader/x-vertex">#version 300 es
+    layout(location=0) in vec4 vPosition;
+    layout(location=1) in vec3 vNormal;
+    layout(location=2) in vec2 vTexCoord;   // Another thing 
+    
+    uniform mat4 uModel;  // Object to world
+    uniform mat4 uView;   // World to camera
+    uniform mat4 uProj;   // Projection matrix
+    
+    // Output to the fragment shader
+    out vec3 fNormCam;   // Normal in camera coordinates
+    out vec3 fPosCam;    // Position in camera 
+    out vec2 fTexCoord;  // A thing
+    
+    void main() {
+        fTexCoord = vTexCoord; 
+        mat4 mv = uView * uModel;
+    
+        // Compute position in camera coordinates
+        fPosCam = (mv * vPosition).xyz;
+    
+        // Transform normal into camera coordinates.  Note that this is not correct in all cases.  This
+        // only transforms the normal correctly when mv contains uniform scalings.  The correct
+        // transformation is the inverse transpose of mv.  For now, to keep things simple,
+        // we'll just avoid non-uniform scalings.  
+        // Note: we add 0 as the 4th component of the normal.
+        fNormCam = normalize( (mv * vec4(vNormal,0)).xyz ); 
+    
+        // Convert position to clip coordinates
+        gl_Position = uProj * mv * vPosition;
+    }
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">#version 300 es
+    precision highp float;
+    
+    out vec4 fragColor;
+
+    // From the vertex shader, interpolated across the triangle
+    in vec3 fNormCam;   // Normal in camera coordinates
+    in vec3 fPosCam;    // Position in camera coordinates
+    in vec2 fTexCoord;  // A Thing from before. 
+    
+    // Material Properties
+    uniform vec3 uEmissive;  // Emitted intensity
+    uniform vec3 uAmbient;   // Ambient 
+    uniform vec3 uDiffuse;   // Diffuse reflectivity (Kd)
+    uniform vec3 uSpecular;  // Specular reflectivity (Ks)
+    uniform float uShine;    // Specular exponent (f)
+    
+    // Light properties
+    uniform vec3 uLightPos;         // Light position (camera coords)
+    uniform vec3 uLightIntensity;   // Light intensity
+    uniform vec3 uAmbientLight;     // Intensity of ambient light
+
+    // Texture parameters
+    uniform bool uHasDiffuseTex;    // Whether or not we're using a texture
+    uniform sampler2D uDiffuseTex;  // The diffuse texture
+    
+    void main() {
+        // Renormalize (interpolation can change length slightly)
+        vec3 n = normalize(fNormCam);
+    
+        // Direction towards light (camera coords)
+        vec3 lightDir = normalize( (uLightPos - fPosCam).xyz );
+        // Cosine of the angle between normal and lightDir
+        float lDotN = max( dot( lightDir, n ), 0.0 );
+        vec3 diffuse = uDiffuse * lDotN, 
+             specular = vec3(0,0,0);
+        if( lDotN > 0.0 ) {
+            // Direction towards the camera
+            vec3 vDir = normalize( -fPosCam );
+            // "Halfway" vector
+            vec3 h = normalize( lightDir + vDir );
+            float hDotN = max( dot(h, n), 0.0 );
+            specular = uSpecular * pow(hDotN, uShine);
+        }
+
+        //Update Diffuse Shapding
+        if(uHasDiffuseTex) {
+            vec3 texVal = texture(uDiffuseTex, fTexCoord).rgb;
+            diffuse = texVal*lDotN;
+        } else {
+            diffuse = uDiffuse*lDotN;
+        }
+        
+        // Final color
+        fragColor = vec4( 
+            uEmissive + 
+            uAmbientLight * uAmbient + 
+            uLightIntensity * (diffuse + specular)
+            , 1 );
+    }
+</script>
+
+<!-- Load Javascript files at the end of the body. -->
+<script type="text/javascript" src="lib/gl-matrix-min.js"></script>
+<script type="text/javascript" src="lib/412-utils.js"></script>
+<script type="text/javascript" src="lib/webgl-utils.js"></script>
+<script type="text/javascript" src="lib/geom/triangle-mesh.js"></script>
+<script type="text/javascript" src="lib/geom/shapes/grid.js"></script>
+<script type="text/javascript" src="lib/geom/shapes/axes.js"></script>
+<script type="text/javascript" src="lib/geom/shapes/cube.js"></script>
+<script type="text/javascript" src="lib/geom/shapes/cone.js"></script>
+<script type="text/javascript" src="lib/geom/shapes/disk.js"></script>
+<script type="text/javascript" src="lib/geom/shapes/cylinder.js"></script>
+<script type="text/javascript" src="lib/geom/shapes.js"></script>
+<script type="text/javascript" src="lib/camera.js"></script>
+<script type="text/javascript" src="lib/geom/shapes/material.js"></script>
+<script type="text/javascript" src="lib/geom/objmodel.js"></script>
+<script type="text/javascript" src="lib/textures.js"></script>
+
+<script type="text/javascript" src="pa6.js"></script>
+
+</body>
+</html>
