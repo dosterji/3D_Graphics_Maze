@@ -258,7 +258,7 @@ mouseState = {
 var cameraMode = 0;          // Mouse = 0, Fly = 1
 var downKeys = new Set();    // Keys currently pressed
 
-var lightingMode = 0;       // Local = 0, Camera = 1;
+var lightingMode = 0;       // Camera = 0, Local = 1;
 
 var setupEventHandlers = function() {
     let modeSelect = document.getElementById("camera-mode-select");
@@ -342,10 +342,10 @@ var setupEventHandlers = function() {
 var updateCamera = function() {
     if(cameraMode === 0) {
         if(downKeys.has("KeyW")) {
-            camera.dolly(-0.1);
+            camera.walk(-0.1);
         }
         if(downKeys.has("KeyS")) {
-            camera.dolly(+0.1);
+            camera.walk(+0.1);
         }
         if(downKeys.has("KeyA")) {
             camera.track(-0.1, 0.0);
@@ -366,7 +366,7 @@ var updateCamera = function() {
  * A method for updating the location of the light source
  */
 var updateLight = function() {
-    if(lightingMode == 0) {
+    if(lightingMode == 1) {
         if(downKeys.has("ArrowUp")) {
             light[1]+=0.1;
         }
@@ -392,7 +392,7 @@ var updateLight = function() {
             vec3.rotateY(light, light, vec3.fromValues(0, light[1], 0) , dy);
         }
     }
-    if( lightingMode == 1 ) {
+    if( lightingMode == 0 ) {
         vec3.copy(light, camera.eye);
     }
 };
