@@ -1,13 +1,3 @@
-/*
-Name: John Doster
-Assignment: PA6
-Course/Semester: CS 412 - Spring 2018
-Instructor: Dr. Wolff
-Sources consulted: Ethan Wiederspan, Isaiah Scheel 
-Known Bugs: The cylinder draws a small extra part at the seem
-Special instructions: n/a
-*/
-
 // The WebGL object
 var gl;
 
@@ -21,6 +11,10 @@ var camera;  // The camera
 var light = vec3.create();    // The location of the light source.
 
 var cubeMaterial = new Material();
+
+var jumping = false;    // A boolean variable that tells the player if they are jumpning or not. 
+var initial_vel = 0.2;  // variables used for jumping 
+var current_vel;      
 
 // Uniform variable locations
 var uni = {
@@ -328,7 +322,7 @@ var setupEventHandlers = function() {
     });
     document.addEventListener("keyup", function(e) {
         downKeys.delete(e.code);
-        if(e.code === "Space") {
+        if(e.code === "KeyN") {
             camera = new Camera( canvas.width / canvas.height );
         }
     });
@@ -341,6 +335,12 @@ var setupEventHandlers = function() {
  */
 var updateCamera = function() {
     if(cameraMode === 0) {
+        if(downKeys.has("Space")) {
+            if(!jumping) {
+                jumping=true;
+                current_vel=initial_vel;
+            }
+        }
         if(downKeys.has("KeyW")) {
             camera.walk(-0.1);
         }
@@ -358,6 +358,14 @@ var updateCamera = function() {
         }
         if(downKeys.has("KeyE")) {
             camera.track(0.0, -0.1);
+        }
+        if(jumping) {
+            current_vel = camera.jump(current_vel);
+        }
+        //camera methods for jumping
+        console.log(camera.eye[1]);
+        if(camera.eye[1] <= 0.7) {
+            jumping = false;
         }
     }
 };
