@@ -12,9 +12,18 @@ var light = vec3.create();    // The location of the light source.
 
 var cubeMaterial = new Material();
 
+var walking_speed = 0.1;              //The variables used for walking 
+var crouching_speed = 0.03;
+var current_speed = walking_speed;
+
 var jumping = false;    // A boolean variable that tells the player if they are jumpning or not. 
 var initial_vel = 0.2;  // variables used for jumping 
 var current_vel;      
+
+var crouching = false;      //boolean: Is the player moving to a crouching position 
+                                    // (holding keyC and not at crouching height)
+var standing_up = false;    //boolean: Is the player standing up (released the c key)
+var crouching_vel = 0.05;         
 
 // Uniform variable locations
 var uni = {
@@ -319,11 +328,21 @@ var setupEventHandlers = function() {
     });
     document.addEventListener("keydown", function(e) {
         downKeys.add(e.code);
+        if(e.code === "KeyC") {
+            current_speed = crouching_speed;
+            standing_up = false;
+            crouching = true;
+        }
     });
     document.addEventListener("keyup", function(e) {
         downKeys.delete(e.code);
         if(e.code === "KeyN") {
             camera = new Camera( canvas.width / canvas.height );
+        }
+        if(e.code === "KeyC") {
+            current_speed = walking_speed;
+            crouching = false
+            standing_up = true;
         }
     });
 };
@@ -335,17 +354,19 @@ var setupEventHandlers = function() {
  */
 var updateCamera = function() {
     if(cameraMode === 0) {
+        // Starting a jump
         if(downKeys.has("Space")) {
             if(!jumping) {
                 jumping=true;
                 current_vel=initial_vel;
             }
         }
+        // Basic movement controls.
         if(downKeys.has("KeyW")) {
-            camera.walk(-0.1);
+            camera.walk(-current_speed);
         }
         if(downKeys.has("KeyS")) {
-            camera.walk(+0.1);
+            camera.walk(+current_speed);
         }
         if(downKeys.has("KeyA")) {
             camera.track(-0.1, 0.0);
@@ -359,14 +380,22 @@ var updateCamera = function() {
         if(downKeys.has("KeyE")) {
             camera.track(0.0, -0.1);
         }
+        // Statements for jumping
         if(jumping) {
             current_vel = camera.jump(current_vel);
         }
-        //camera methods for jumping
-        console.log(camera.eye[1]);
-        if(camera.eye[1] <= 0.7) {
+        if(camera.eye[1] <= camera.standing_height) {
             jumping = false;
         }
+        // Statements for crouching
+        if(crouching && camera.eye[1] >= camera.crouching_height) {
+            camera.crouch(crouching_vel);
+        }
+        // Statements for Standing up
+        if(standing_up && camera.eye[1] <= camera.standing_height) {
+            camera.uncrouch(crouching_vel);
+        }
+        console.log(camera.eye[1]);
     }
 };
 
