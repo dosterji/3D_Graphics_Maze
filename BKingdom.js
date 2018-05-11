@@ -12,8 +12,9 @@ var light = vec3.create();    // The location of the light source.
 
 var cubeMaterial = new Material();
 
-var walking_speed = 0.1;              //The variables used for walking 
+var walking_speed = 0.08;              //The variables used for walking 
 var crouching_speed = 0.03;
+var sprint_speed = 0.15;
 var current_speed = walking_speed;
 
 var jumping = false;    // A boolean variable that tells the player if they are jumpning or not. 
@@ -328,10 +329,19 @@ var setupEventHandlers = function() {
     });
     document.addEventListener("keydown", function(e) {
         downKeys.add(e.code);
+        console.log(e.code);
+        if(e.code === "Space") {
+            e.preventDefault();
+        }
         if(e.code === "KeyC") {
             current_speed = crouching_speed;
             standing_up = false;
             crouching = true;
+        }
+        if(e.code === "ShiftLeft" && !crouching) {
+            current_speed = sprint_speed;
+            standing_up = false;
+            crouching = false;;
         }
     });
     document.addEventListener("keyup", function(e) {
@@ -343,6 +353,9 @@ var setupEventHandlers = function() {
             current_speed = walking_speed;
             crouching = false
             standing_up = true;
+        }
+        if(e.code === "ShiftLeft" && !crouching) {
+            current_speed = walking_speed;
         }
     });
 };
@@ -369,16 +382,18 @@ var updateCamera = function() {
             camera.walk(+current_speed);
         }
         if(downKeys.has("KeyA")) {
-            camera.track(-0.1, 0.0);
+            camera.track(-current_speed, 0.0);
         }
         if(downKeys.has("KeyD")) {
-            camera.track(+0.1, 0.0);
+            camera.track(+current_speed, 0.0);
         }
-        if(downKeys.has("KeyQ")) {
-            camera.track(0.0, +0.1);
-        }
-        if(downKeys.has("KeyE")) {
-            camera.track(0.0, -0.1);
+        if(cameraMode === 1) {
+            if(downKeys.has("KeyQ")) {
+                camera.track(0.0, +0.1);
+            }
+            if(downKeys.has("KeyE")) {
+                camera.track(0.0, -0.1);
+            }
         }
         // Statements for jumping
         if(jumping) {
