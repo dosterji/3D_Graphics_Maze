@@ -90,30 +90,26 @@ var init = function() {
     //set uniforms that do not change often
     //no idea what to set these to or how to set them, the program can't find uniform3fv
     gl.uniform3fv(uni.uLightIntensity, vec3.fromValues(3.0, 3.0, 3.0));
-    gl.uniform3fv(uni.uAmbientLight, vec3.fromValues(0.1,0.1,0.1));
+    gl.uniform3fv(uni.uAmbientLight, vec3.fromValues(1,1,0));
 
     gl.uniform1i(uni.uDiffuseTex, 0);
-
-    cubeMaterial.diffuseTexture = "sad-boy.png";
 
     // Initialize our shapes
     Shapes.init(gl);
     grid = new Grid(gl, 20.0, 20, Float32Array.from([0.7,0.7,0.7]));
     axes = new Axes(gl, 2.5, 0.05);
+    Maze.init();
 
     // Initialize the camera
     camera = new Camera( canvas.width / canvas.height );
     vec3.copy(light, camera.eye);          //start light position where camera is positioned
 
+    // Initialize the textures
+    Textures.init(gl);
+
     setupEventHandlers();
 
-    Promise.all([
-        Utils.loadTexture(gl, "texs/sad-boy.png") //This calls throws an error in 412-Utils
-    ]).then(function(val) {
-        Textures["sad-boy.png"] = val[0];
-        render();
-    });
-    //render();
+    render();
 };
 
 /**
@@ -137,7 +133,9 @@ var render = function() {
     drawLightSource();
 
     drawAxesAndGrid();
+    
     drawScene();
+    Maze.render(gl,uni);
 };
 
 /**
@@ -151,6 +149,7 @@ var drawScene = function() {
     vec3.set(material.diffuse, 0.0, 0.3, 0.0);
     vec3.set(material.ambient, 0.0, 0.0, 0.0);
     vec3.set(material.specular, 0.0, 0.0, 0.0);
+    
 
     //Floor 
     mat4.fromScaling(model, vec3.fromValues(18, 0.1, 18));
@@ -158,27 +157,28 @@ var drawScene = function() {
     Shapes.cube.render(gl, uni, material);
 
     // Draw a red cube, translated
-    material.diffuseTexture = "sad-boy.png";
+    Shapes.cube.material.diffuseTexture = "cobble-texture";
     mat4.fromTranslation(model, vec3.fromValues(1.0,2.0,1.0));
-    vec3.set(material.diffuse, 0.3, 0.0, 0.0);
-    vec3.set(material.specular, 0.2, 0, 0);
+    vec3.set(Shapes.cube.material.diffuse, 1, 1, 1);
+    vec3.set(Shapes.cube.material.specular, 0, 0, 0);
     gl.uniformMatrix4fv(uni.uModel, false, model);
-    Shapes.cube.render(gl, uni, material);
+    Shapes.cube.render(gl, uni, Shapes.cube.material);
 
     // Draw a Disk
-    //material.diffuseTexture = null;
+    Shapes.disk.material.diffuseTexture = "grass-texture";
     mat4.fromTranslation(model, vec3.fromValues(-1.0,0.1,1.0));
     mat4.scale(model, model, vec3.fromValues(.75, 1, .75));
-    vec3.set(material.diffuse, 0.3, 0.3, 0.0);
-    vec3.set(material.specular, 0.0, 0, 0);
+    vec3.set(Shapes.disk.material.diffuse, 0.3, 0.3, 0.0);
+    vec3.set(Shapes.disk.material.specular, 0.0, 0, 0);
     gl.uniformMatrix4fv(uni.uModel, false, model);
-    Shapes.disk.render(gl, uni, material);
+    Shapes.disk.render(gl, uni, Shapes.disk.material);
 
     //Draw a Cylinder 
+    Shapes.cylinder.material.diffuseTexture = "sky-texture";
     mat4.fromTranslation(model, vec3.fromValues(-1.0,0.0,-1.0));
-    vec3.set(material.diffuse, 0.3, 0.0, 0.3);
+    vec3.set(Shapes.cylinder.material.diffuse, 0.3, 0.0, 0.3);
     gl.uniformMatrix4fv(uni.uModel, false, model);
-    Shapes.cylinder.render(gl, uni, material);
+    Shapes.cylinder.render(gl, uni, Shapes.cylinder.material);
 
     //Top of Cylinder 
     mat4.fromTranslation(model, vec3.fromValues(-1.0, 1.01, -1.0));
@@ -329,7 +329,9 @@ var setupEventHandlers = function() {
     });
     document.addEventListener("keydown", function(e) {
         downKeys.add(e.code);
-        console.log(e.code);
+        if(e.code === "KeyM"){
+            camera.map();
+        }
         if(e.code === "Space") {
             e.preventDefault();
         }
@@ -410,7 +412,6 @@ var updateCamera = function() {
         if(standing_up && camera.eye[1] <= camera.standing_height) {
             camera.uncrouch(crouching_vel);
         }
-        console.log(camera.eye[1]);
     }
 };
 
