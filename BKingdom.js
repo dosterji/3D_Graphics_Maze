@@ -24,7 +24,10 @@ var current_vel;
 var crouching = false;      //boolean: Is the player moving to a crouching position 
                                     // (holding keyC and not at crouching height)
 var standing_up = false;    //boolean: Is the player standing up (released the c key)
-var crouching_vel = 0.05;         
+var inMap = false;          //boolean: Is the player in the map view
+var crouching_vel = 0.05;       
+
+var bunnies = [];
 
 // Uniform variable locations
 var uni = {
@@ -89,8 +92,8 @@ var init = function() {
     
     //set uniforms that do not change often
     //no idea what to set these to or how to set them, the program can't find uniform3fv
-    gl.uniform3fv(uni.uLightIntensity, vec3.fromValues(3.0, 3.0, 3.0));
-    gl.uniform3fv(uni.uAmbientLight, vec3.fromValues(1,1,0));
+    gl.uniform3fv(uni.uLightIntensity, vec3.fromValues(0.7, 0.7, 0.7));
+    gl.uniform3fv(uni.uAmbientLight, vec3.fromValues(0.5,0.5,0.2));
 
     gl.uniform1i(uni.uDiffuseTex, 0);
 
@@ -132,10 +135,11 @@ var render = function() {
 
     drawLightSource();
 
-    drawAxesAndGrid();
+    //drawAxesAndGrid();
     
     drawScene();
     Maze.render(gl,uni);
+    drawDoors();
 };
 
 /**
@@ -150,7 +154,7 @@ var drawScene = function() {
     vec3.set(material.ambient, 0.0, 0.0, 0.0);
     vec3.set(material.specular, 0.0, 0.0, 0.0);
     
-
+    /*
     //Floor 
     mat4.fromScaling(model, vec3.fromValues(18, 0.1, 18));
     gl.uniformMatrix4fv(uni.uModel, false, model);
@@ -193,6 +197,8 @@ var drawScene = function() {
     vec3.set(material.diffuse, 0.0, 0.3, 0.3);
     gl.uniformMatrix4fv(uni.uModel, false, model);
     Shapes.cone.render(gl, uni, material);
+    */
+
 
     //Set uLightPos
     let lightPos = vec3.create();
@@ -212,6 +218,10 @@ var drawScene = function() {
     gl.uniform3fv(uni.uLightPos, lightPos);
 };
 
+var drawDoors = function(){
+
+};
+
 /**
  * A method for drawing the light source.
  */
@@ -227,7 +237,7 @@ var drawLightSource = function() {
     vec3.set(material.diffuse, 0.0, 0.0, 0.0);
     vec3.set(material.ambient, 0.0, 0.0, 0.0);
     vec3.set(material.specular, 0.0, 0.0, 0.0);
-    vec3.set(material.emissive, 1.0, 1.0, 1.0);
+    vec3.set(material.emissive, 1.0, 1.0, .5);
     Shapes.cube.render(gl, uni, material);
 }
 
@@ -329,25 +339,35 @@ var setupEventHandlers = function() {
     });
     document.addEventListener("keydown", function(e) {
         downKeys.add(e.code);
-        if(e.code === "KeyM"){
-            camera.map();
+
+        if(!inMap){
+            if(e.code === "KeyM"){
+                camera.map();
+                inMap = true;
+            }
+            if(e.code === "KeyC") {
+                current_speed = crouching_speed;
+                standing_up = false;
+                crouching = true;
+            }
+            if(e.code === "ShiftLeft" && !crouching) {
+                current_speed = sprint_speed;
+                standing_up = false;
+                crouching = false;
+            }
         }
+
         if(e.code === "Space") {
             e.preventDefault();
         }
-        if(e.code === "KeyC") {
-            current_speed = crouching_speed;
-            standing_up = false;
-            crouching = true;
-        }
-        if(e.code === "ShiftLeft" && !crouching) {
-            current_speed = sprint_speed;
-            standing_up = false;
-            crouching = false;;
-        }
+        
     });
     document.addEventListener("keyup", function(e) {
         downKeys.delete(e.code);
+        if(e.code === "KeyM"){
+            camera.returnFromMap();
+            inMap = false;
+        }
         if(e.code === "KeyN") {
             camera = new Camera( canvas.width / canvas.height );
         }
@@ -368,7 +388,7 @@ var setupEventHandlers = function() {
  * from render() every frame.
  */
 var updateCamera = function() {
-    if(cameraMode === 0) {
+    if(cameraMode === 0 && !inMap) {
         // Starting a jump
         if(downKeys.has("Space")) {
             if(!jumping) {
