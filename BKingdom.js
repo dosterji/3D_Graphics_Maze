@@ -102,6 +102,7 @@ var init = function() {
     grid = new Grid(gl, 20.0, 20, Float32Array.from([0.7,0.7,0.7]));
     axes = new Axes(gl, 2.5, 0.05);
     Maze.init();
+    Key.init(0, 0, vec3.fromValues(0,0.5,0));
 
     // Initialize the camera
     camera = new Camera( canvas.width / canvas.height );
@@ -140,6 +141,8 @@ var render = function() {
     drawScene();
     Maze.render(gl,uni);
     Maze.drawDoors(gl,uni);
+    //Key.render(gl, uni); //This causes serious slowdown with how much is being 
+                           //loaded with each iteraltion of render
 };
 
 /**
@@ -436,7 +439,6 @@ var updateCamera = function() {
         console.log("Crossed");
         Maze.openDoor("Green");
     }
-    
 };
 
 /**
