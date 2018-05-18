@@ -139,7 +139,7 @@ var render = function() {
     
     drawScene();
     Maze.render(gl,uni);
-    drawDoors();
+    Maze.drawDoors(gl,uni);
 };
 
 /**
@@ -218,10 +218,6 @@ var drawScene = function() {
     gl.uniform3fv(uni.uLightPos, lightPos);
 };
 
-var drawDoors = function(){
-
-};
-
 /**
  * A method for drawing the light source.
  */
@@ -252,7 +248,7 @@ var drawAxesAndGrid = function() {
     // Draw Axes
     axes.render(gl,uni);
 };
-
+ 
 //////////////////////////////////////////////////
 // Event handlers
 //////////////////////////////////////////////////
@@ -388,6 +384,7 @@ var setupEventHandlers = function() {
  * from render() every frame.
  */
 var updateCamera = function() {
+    var startQuad = Maze.getQuad(camera.eye);
     if(cameraMode === 0 && !inMap) {
         // Starting a jump
         if(downKeys.has("Space")) {
@@ -433,6 +430,13 @@ var updateCamera = function() {
             camera.uncrouch(crouching_vel);
         }
     }
+    var endQuad = Maze.getQuad(camera.eye);
+
+    if(startQuad[0] != endQuad[0] || startQuad[1] != endQuad[1]){
+        console.log("Crossed");
+        Maze.openDoor("Green");
+    }
+    
 };
 
 /**
