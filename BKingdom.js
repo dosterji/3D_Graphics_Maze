@@ -166,52 +166,6 @@ var drawScene = function() {
     vec3.set(material.diffuse, 0.0, 0.3, 0.0);
     vec3.set(material.ambient, 0.0, 0.0, 0.0);
     vec3.set(material.specular, 0.0, 0.0, 0.0);
-    
-    /*
-    //Floor 
-    mat4.fromScaling(model, vec3.fromValues(18, 0.1, 18));
-    gl.uniformMatrix4fv(uni.uModel, false, model);
-    Shapes.cube.render(gl, uni, material);
-
-    // Draw a red cube, translated
-    Shapes.cube.material.diffuseTexture = "cobble-texture";
-    mat4.fromTranslation(model, vec3.fromValues(1.0,2.0,1.0));
-    vec3.set(Shapes.cube.material.diffuse, 1, 1, 1);
-    vec3.set(Shapes.cube.material.specular, 0, 0, 0);
-    gl.uniformMatrix4fv(uni.uModel, false, model);
-    Shapes.cube.render(gl, uni, Shapes.cube.material);
-
-    // Draw a Disk
-    Shapes.disk.material.diffuseTexture = "grass-texture";
-    mat4.fromTranslation(model, vec3.fromValues(-1.0,0.1,1.0));
-    mat4.scale(model, model, vec3.fromValues(.75, 1, .75));
-    vec3.set(Shapes.disk.material.diffuse, 0.3, 0.3, 0.0);
-    vec3.set(Shapes.disk.material.specular, 0.0, 0, 0);
-    gl.uniformMatrix4fv(uni.uModel, false, model);
-    Shapes.disk.render(gl, uni, Shapes.disk.material);
-
-    //Draw a Cylinder 
-    Shapes.cylinder.material.diffuseTexture = "sky-texture";
-    mat4.fromTranslation(model, vec3.fromValues(-1.0,0.0,-1.0));
-    vec3.set(Shapes.cylinder.material.diffuse, 0.3, 0.0, 0.3);
-    gl.uniformMatrix4fv(uni.uModel, false, model);
-    Shapes.cylinder.render(gl, uni, Shapes.cylinder.material);
-
-    //Top of Cylinder 
-    mat4.fromTranslation(model, vec3.fromValues(-1.0, 1.01, -1.0));
-    mat4.scale(model, model, vec3.fromValues(0.5, 1.0, 0.5));
-    gl.uniformMatrix4fv(uni.uModel, false, model);
-    Shapes.disk.render(gl, uni, material);
-
-    //Draw a cone 
-    material.diffuseTexture = null;
-    mat4.fromTranslation(model, vec3.fromValues(1.0,0.0,-1.0));
-    mat4.scale(model, model, vec3.fromValues(1.5, 1.5, 1.5));
-    vec3.set(material.diffuse, 0.0, 0.3, 0.3);
-    gl.uniformMatrix4fv(uni.uModel, false, model);
-    Shapes.cone.render(gl, uni, material);
-    */
-
 
     //Set uLightPos
     let lightPos = vec3.create();
@@ -398,6 +352,10 @@ var setupEventHandlers = function() {
  */
 var updateCamera = function() {
     var startQuad = Maze.getQuad(camera.eye);
+    
+    let initial_position = vec3.create();
+    vec3.copy(initial_position, camera.eye)
+
     if(cameraMode === 0 && !inMap) {
         // Starting a jump
         if(downKeys.has("Space")) {
@@ -408,16 +366,20 @@ var updateCamera = function() {
         }
         // Basic movement controls.
         if(downKeys.has("KeyW")) {
-            camera.walk(-current_speed);
+            if(LookAhead.check(camera, initial_position, "N", current_speed))
+                camera.walk(-current_speed);
         }
         if(downKeys.has("KeyS")) {
-            camera.walk(+current_speed);
+            if(LookAhead.check(camera, initial_position, "S", current_speed))
+                camera.walk(+current_speed);
         }
         if(downKeys.has("KeyA")) {
-            camera.track(-current_speed, 0.0);
+            if(LookAhead.check(camera, initial_position, "W", current_speed))
+                camera.track(-current_speed, 0.0);
         }
         if(downKeys.has("KeyD")) {
-            camera.track(+current_speed, 0.0);
+            if(LookAhead.check(camera, initial_position, "E", current_speed))
+                camera.track(+current_speed, 0.0);
         }
         if(cameraMode === 1) {
             if(downKeys.has("KeyQ")) {
