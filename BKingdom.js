@@ -99,10 +99,12 @@ var init = function() {
 
     // Initialize our shapes
     Shapes.init(gl);
+    
+
     grid = new Grid(gl, 20.0, 20, Float32Array.from([0.7,0.7,0.7]));
     axes = new Axes(gl, 2.5, 0.05);
     Maze.init();
-    Key.init(0, 0, vec3.fromValues(0,0.5,0));
+    
 
     // Initialize the camera
     camera = new Camera( canvas.width / canvas.height );
@@ -112,8 +114,17 @@ var init = function() {
     Textures.init(gl);
 
     setupEventHandlers();
+    Promise.all([
+        Obj.load(gl, "media/bunny_max_res.obj"),
+    ]).then( function(values) {
+        Shapes.bunny = values[0];
+        console.log("Made bunny: "+Shapes.bunny);
 
-    render();
+        Key.init(0, 0, vec3.fromValues(0,0.5,0));
+
+        render();
+    });
+    
 };
 
 /**
@@ -141,8 +152,7 @@ var render = function() {
     drawScene();
     Maze.render(gl,uni);
     Maze.drawDoors(gl,uni);
-    //Key.render(gl, uni); //This causes serious slowdown with how much is being 
-                           //loaded with each iteraltion of render
+    Key.render(gl, uni); 
 };
 
 /**
