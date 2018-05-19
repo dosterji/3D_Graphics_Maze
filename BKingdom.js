@@ -27,7 +27,9 @@ var standing_up = false;    //boolean: Is the player standing up (released the c
 var inMap = false;          //boolean: Is the player in the map view
 var crouching_vel = 0.05;       
 
-var bunnies = [];
+var keys = [];              //A list of the keys that exist
+var key_colors = ["green","blue","red","purple"];
+var inventory = [];         //A list of the keys that have been collected
 
 // Uniform variable locations
 var uni = {
@@ -114,12 +116,16 @@ var init = function() {
     Textures.init(gl);
 
     setupEventHandlers();
+
+    // For loading the bunnies
+
     Promise.all([
         Obj.load(gl, "media/bunny_max_res.obj"),
     ]).then( function(values) {
         Shapes.bunny = values[0];
         console.log("Made bunny: "+Shapes.bunny);
 
+        keys["green"] = Key.init()
         Key.init(0, 0, vec3.fromValues(0,0.5,0));
 
         render();
