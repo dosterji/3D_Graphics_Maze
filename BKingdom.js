@@ -28,7 +28,6 @@ var inMap = false;          //boolean: Is the player in the map view
 var crouching_vel = 0.05;       
 
 var keys = [];              //A list of the keys that exist
-var key_colors = ["green","blue","red","purple"];
 var inventory = [];         //A list of the keys that have been collected
 
 // Uniform variable locations
@@ -123,10 +122,19 @@ var init = function() {
         Obj.load(gl, "media/bunny_max_res.obj"),
     ]).then( function(values) {
         Shapes.bunny = values[0];
-        console.log("Made bunny: "+Shapes.bunny);
 
-        keys["green"] = Key.init()
-        Key.init(0, 0, vec3.fromValues(0,0.5,0));
+        let coord = Maze.getCoord([2,0]);
+        console.log(coord);
+        keys[0] = new Key(coord[0], coord[1], vec3.fromValues(0, 1, 0));
+        coord = Maze.getCoord([17,4]);
+        console.log(coord);
+        keys[1] = new Key(coord[0], coord[1], vec3.fromValues(0, 0, 1));
+        coord = Maze.getCoord([14,10]);
+        console.log(coord);
+        keys[2] = new Key(coord[0], coord[1], vec3.fromValues(1, 0, 0));
+        coord = Maze.getCoord([0,18]);
+        console.log(coord);
+        keys[3] = new Key(coord[0], coord[1], vec3.fromValues(0.5, 0, 0.5));
 
         render();
     });
@@ -158,7 +166,10 @@ var render = function() {
     drawScene();
     Maze.render(gl,uni);
     Maze.drawDoors(gl,uni);
-    Key.render(gl, uni); 
+    for(let i=0; i<keys.length; i++) {
+        //console.log(i);
+        keys[i].render(gl, uni);
+    } 
 };
 
 /**
