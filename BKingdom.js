@@ -28,7 +28,8 @@ var inMap = false;          //boolean: Is the player in the map view
 var crouching_vel = 0.05;       
 
 var keys = [];              //A list of the keys that exist
-var inventory = [];         //A list of the keys that have been collected
+var inventory = [];         //A list of the keys that have been collected.  Keys are string values, e.g., inventory[i]="green";
+var inventory_size = 0;
 
 // Uniform variable locations
 var uni = {
@@ -130,16 +131,16 @@ var init = function() {
         Shapes.bunny3 = values[3];
 
         let coord = Maze.getCoord([2,0]);
-        console.log(coord);
+        //console.log(coord);
         keys[0] = new Key(coord[0], coord[1], vec3.fromValues(0, 1, 0));
         coord = Maze.getCoord([17,4]);
-        console.log(coord);
+        //console.log(coord);
         keys[1] = new Key(coord[0], coord[1], vec3.fromValues(0, 0, 1));
         coord = Maze.getCoord([14,10]);
-        console.log(coord);
+        //console.log(coord);
         keys[2] = new Key(coord[0], coord[1], vec3.fromValues(1, 0, 0));
         coord = Maze.getCoord([0,18]);
-        console.log(coord);
+        //console.log(coord);
         keys[3] = new Key(coord[0], coord[1], vec3.fromValues(0.5, 0, 0.5));
 
         render();
@@ -156,6 +157,7 @@ var render = function() {
 
     // Update camera when in fly mode
     updateCamera();
+    updateInventory();
     updateLight();
 
     // Clear the color and depth buffers
@@ -173,9 +175,9 @@ var render = function() {
     Maze.render(gl,uni);
     Maze.drawDoors(gl,uni);
     for(let i=0; i<keys.length; i++) {
-        //console.log(i);
         keys[i].render(gl, uni);
     } 
+    console.log("Inventory: " +inventory);
 };
 
 /**
@@ -431,10 +433,43 @@ var updateCamera = function() {
     var endQuad = Maze.getQuad(camera.eye);
 
     if(startQuad[0] != endQuad[0] || startQuad[1] != endQuad[1]){
-        console.log("Crossed");
+        //console.log("Crossed");
         Maze.openDoor("Green");
     }
 };
+
+/**
+ * A function for adding bunnies to the player's inventory;
+ */
+var updateInventory = function() {
+    let player_location = vec3.create();
+    vec3.copy(player_location, camera.eye);
+    player_location[1] = 0;
+    for(let i=0; i<keys.length; i++) {
+        if(!keys[i].picked_up && distance(player_location, keys[i].location)<1) {
+            keys[i].pickUp();
+            inventory[inventory_size] = keys[i].color_text;
+            inventory_size++;
+        }
+    }
+};
+
+/**
+ * A method that finds the distance between two points.  
+ * 
+ * @param {Vec3} player_location 
+ * @param {Vec3} key_location 
+ * 
+ * @return {Number} a value representing the distance between the two objects.
+ */
+var distance = function(player_location, key_location) {
+    let first = Math.pow(player_location[0]-key_location[0], 2);
+    let second = Math.pow(player_location[1]-key_location[1], 2);
+    let third = Math.pow(player_location[2]-key_location[2], 2);
+
+    let result = Math.sqrt(first+second+third);
+    return Math.abs(result);
+}
 
 /**
  * A method for updating the location of the light source
