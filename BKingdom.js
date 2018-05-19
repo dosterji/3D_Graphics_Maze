@@ -120,8 +120,14 @@ var init = function() {
 
     Promise.all([
         Obj.load(gl, "media/bunny_max_res.obj"),
+        Obj.load(gl, "media/bunny_max_res.obj"),
+        Obj.load(gl, "media/bunny_max_res.obj"),
+        Obj.load(gl, "media/bunny_max_res.obj"),
     ]).then( function(values) {
-        Shapes.bunny = values[0];
+        Shapes.bunny0 = values[0];
+        Shapes.bunny1 = values[1];
+        Shapes.bunny2 = values[2];
+        Shapes.bunny3 = values[3];
 
         let coord = Maze.getCoord([2,0]);
         console.log(coord);
