@@ -13,8 +13,8 @@ var light = vec3.create();    // The location of the light source.
 var cubeMaterial = new Material();
 
 var walking_speed = 0.08;              //The variables used for walking 
-var crouching_speed = 0.03;
-var sprint_speed = 0.15;
+var crouching_speed = 0.04;
+var sprint_speed = 0.16;
 var current_speed = walking_speed;
 
 var jumping = false;    // A boolean variable that tells the player if they are jumpning or not. 
@@ -177,7 +177,7 @@ var render = function() {
     for(let i=0; i<keys.length; i++) {
         keys[i].render(gl, uni);
     } 
-    console.log("Inventory: " +inventory);
+    console.log("Inventory: [" +inventory+"]");
 };
 
 /**
