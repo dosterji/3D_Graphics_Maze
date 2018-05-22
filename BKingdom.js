@@ -173,28 +173,38 @@ var render = function() {
     
     drawScene();
     Maze.render(gl,uni);
+    let camera_copy = vec3.create();
+    vec3.copy(camera_copy, camera.eye)
     if(inventory_size>0) {
-        Maze.checkDoors(inventory, camera.eye);
+        Maze.checkDoors(inventory, camera_copy);
     }
     Maze.drawDoors(gl,uni);
     for(let i=0; i<keys.length; i++) {
         keys[i].render(gl, uni);
     } 
+    //console.log("Inventory: ["+inventory+"]");
 };
 
 /**
  * Draw the objects in the scene.  
  */
 var drawScene = function() {
-    // draw floor
+    //draw floor
     let model = mat4.create();
     let floorMat = new Material();
     floorMat.diffuseTexture = "page-texture";
-   
+
     mat4.fromTranslation(model,vec3.fromValues(x,-3,z)); // tranlation
     mat4.scale(model,model,vec3.fromValues(150,0.002,300)); // Scale
     gl.uniformMatrix4fv(uni.uModel, false, model);
     Shapes.cube.render(gl, uni, floorMat);
+
+
+    //create material
+    let material = new Material(); 
+    vec3.set(material.diffuse, 0.0, 0.3, 0.0);
+    vec3.set(material.ambient, 0.0, 0.0, 0.0);
+    vec3.set(material.specular, 0.0, 0.0, 0.0);
 
     //Set uLightPos
     let lightPos = vec3.create();
