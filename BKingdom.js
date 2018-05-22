@@ -186,13 +186,15 @@ var render = function() {
  * Draw the objects in the scene.  
  */
 var drawScene = function() {
+    // draw floor
     let model = mat4.create();
-
-    //create material
-    let material = new Material(); 
-    vec3.set(material.diffuse, 0.0, 0.3, 0.0);
-    vec3.set(material.ambient, 0.0, 0.0, 0.0);
-    vec3.set(material.specular, 0.0, 0.0, 0.0);
+    let floorMat = new Material();
+    floorMat.diffuseTexture = "page-texture";
+   
+    mat4.fromTranslation(model,vec3.fromValues(x,-3,z)); // tranlation
+    mat4.scale(model,model,vec3.fromValues(150,0.002,300)); // Scale
+    gl.uniformMatrix4fv(uni.uModel, false, model);
+    Shapes.cube.render(gl, uni, floorMat);
 
     //Set uLightPos
     let lightPos = vec3.create();
