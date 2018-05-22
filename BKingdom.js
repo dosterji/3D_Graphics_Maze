@@ -120,10 +120,10 @@ var init = function() {
     // For loading the bunnies
 
     Promise.all([
-        Obj.load(gl, "media/bunny_max_res.obj"),
-        Obj.load(gl, "media/bunny_max_res.obj"),
-        Obj.load(gl, "media/bunny_max_res.obj"),
-        Obj.load(gl, "media/bunny_max_res.obj"),
+        Obj.load(gl, "media/bunny_med.obj"),
+        Obj.load(gl, "media/bunny_med.obj"),
+        Obj.load(gl, "media/bunny_med.obj"),
+        Obj.load(gl, "media/bunny_med.obj"),
     ]).then( function(values) {
         Shapes.bunny0 = values[0];
         Shapes.bunny1 = values[1];
@@ -173,11 +173,13 @@ var render = function() {
     
     drawScene();
     Maze.render(gl,uni);
+    if(inventory_size>0) {
+        Maze.checkDoors(inventory, camera.eye);
+    }
     Maze.drawDoors(gl,uni);
     for(let i=0; i<keys.length; i++) {
         keys[i].render(gl, uni);
     } 
-    console.log("Inventory: [" +inventory+"]");
 };
 
 /**
@@ -450,6 +452,7 @@ var updateInventory = function() {
             keys[i].pickUp();
             inventory[inventory_size] = keys[i].color_text;
             inventory_size++;
+            console.log("Inventory: [" +inventory+"]");
         }
     }
 };
